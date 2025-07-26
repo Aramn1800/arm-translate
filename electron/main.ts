@@ -29,7 +29,7 @@ const createWindow = () => {
     titleBarStyle: 'hidden',
   })
 
-  if (!isTestMode) {
+  if (isTestMode) {
     mainWin.webContents.openDevTools({mode: 'undocked'});
   }
   // win.loadFile(path.join(RENDERER_DIST, 'index.html')) // вернуть вместо loadURL когда придумаю решение лучше
@@ -61,8 +61,10 @@ ipcMain.handle('take-screenshot', async () => {
   if (!translateWin) return null;
   try {
     const area = translateWin.getBounds();
-    area.y = area.y + 30;
-    area.height = area.height - 30;
+    area.y = area.y + 32;
+    area.height = area.height - 38;
+    area.x = area.x + 4;
+    area.width = area.width - 8;
     const display = screen.getDisplayNearestPoint({x: area.x, y: area.y});
     const sources = await desktopCapturer.getSources({
         types: ['screen'],
@@ -75,8 +77,37 @@ ipcMain.handle('take-screenshot', async () => {
     const screenshotImage: NativeImage = source.thumbnail;
     const fullScreenshotBuffer = screenshotImage.toPNG();
 
+    const sharpenKernel = [
+      [-1, -1, -1],
+      [-1,  9, -1],
+      [-1, -1, -1]
+    ];
+
     const jimp = await Jimp.read(fullScreenshotBuffer);
-    const croppedImage = jimp.crop({ x: area.x, y: area.y, w: area.width, h: area.height } ).brightness(0.8).contrast(0.2).greyscale();
+    const croppedImage = jimp
+      .crop({ x: area.x, y: area.y, w: area.width, h: area.height } )
+      .scale(2)
+      .greyscale()
+      .brightness(0.8)
+      .blur(1)
+      .convolution(sharpenKernel)
+      .threshold({ max: 200, autoGreyscale: false });
+
+    let needInvert = false;
+    let blackPixels = 0;
+    let whitePixels = 0;
+    croppedImage.scan(0, 0, croppedImage.bitmap.width, croppedImage.bitmap.height, (_x, _y, idx) => {
+      if (croppedImage.bitmap.data[idx + 0] < 128) {
+        blackPixels++;
+      } else {
+        whitePixels++;
+      }
+
+      if (blackPixels > whitePixels) needInvert = true;
+    });
+
+    if (needInvert) croppedImage.invert();
+  
     const croppedImageBuffer = await croppedImage.getBuffer('image/png');
 
     if (isTestMode) {
