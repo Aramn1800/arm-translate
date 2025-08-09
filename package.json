@@ -3,11 +3,25 @@
   "description": "Real-time OCR and translation app",
   "author": "Arman Khalegi",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder"
+  },
+  "build": {
+    "appId": "com.armtranslate",
+    "productName": "ARM Translate",
+    "directories": {
+      "output": "release",
+      "buildResources": "src/public"
+    },
+    "win": {
+      "icon": "src/public/translate.ico"
+    },
+    "mac": {
+      "icon": "src/public/translate.icns"
+    }
   },
   "dependencies": {
     "@mui/icons-material": "^7.1.1",

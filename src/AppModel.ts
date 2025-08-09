@@ -37,7 +37,7 @@ export class AppModel {
     if (isTestMode) {
       console.log('AppModel > captureText', search);
     }
-    return search.data.text;
+    return this.fixCaptureText(search.data.text);
   };
 
   translate = async (text: string) => {
@@ -64,6 +64,10 @@ export class AppModel {
     } catch(e) {
       console.error(e);
     }
+  }
+
+  fixCaptureText = (text: string) => {
+    return text.replace('|', 'I');
   }
 }
 

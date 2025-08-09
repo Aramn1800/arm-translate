@@ -30,7 +30,7 @@ const MainWindow: React.FC = observer(() => {
         </div>
         <div
           className="
-            p-2 border-2 border-blue-100 w-full rounded-l overflow-auto whitespace-break-spaces
+            p-2 border-2 border-blue-100 w-full h-full rounded-l overflow-auto whitespace-break-spaces
             [&::-webkit-scrollbar]:w-2
           [&::-webkit-scrollbar-track]:bg-blue-100
             [&::-webkit-scrollbar-thumb]:rounded-full

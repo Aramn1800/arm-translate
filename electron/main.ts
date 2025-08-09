@@ -5,7 +5,6 @@ import path from 'node:path'
 import fs from 'node:fs';
 import os from 'node:os';
 
-const isTestMode = import.meta.env.VITE_TEST_MODE === '1';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RENDERER_DIST = path.join(__dirname, '..', 'dist');
 
@@ -15,6 +14,7 @@ let captureShortcut: string | undefined = undefined;
 
 const createWindow = () => {
   mainWin = new BrowserWindow({
+    show: false,
     alwaysOnTop: true,
     hasShadow: false,
     width: 450,
@@ -29,11 +29,17 @@ const createWindow = () => {
     titleBarStyle: 'hidden',
   })
 
-  if (isTestMode) {
+  if (!app.isPackaged) {
     mainWin.webContents.openDevTools({mode: 'undocked'});
   }
-  // win.loadFile(path.join(RENDERER_DIST, 'index.html')) // вернуть вместо loadURL когда придумаю решение лучше
+
   mainWin.loadURL(path.join(RENDERER_DIST, 'index.html#main'))
+
+  mainWin.once('ready-to-show', () => {
+    if (mainWin) {
+      mainWin.show();
+    }
+  });
 };
 
 const createTranslateWindow = () => {
@@ -110,7 +116,7 @@ ipcMain.handle('take-screenshot', async () => {
   
     const croppedImageBuffer = await croppedImage.getBuffer('image/png');
 
-    if (isTestMode) {
+    if (!app.isPackaged) {
       const dir = path.join(os.homedir(), 'Documents', 'tempScreen');
       const screenshotPath = path.join(dir, `screenshot-${Date.now()}.png`);
       fs.writeFileSync(screenshotPath, croppedImageBuffer);
