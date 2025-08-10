@@ -12,10 +12,20 @@ let mainWin: BrowserWindow | null;
 let translateWin: BrowserWindow | null;
 let captureShortcut: string | undefined = undefined;
 
+const onceReady = (window: BrowserWindow) => {
+  window.once('ready-to-show', () => {
+    window.show();
+    window.setAlwaysOnTop(true, "floating");
+    window.setVisibleOnAllWorkspaces(true);
+    window.setFullScreenable(false);
+    window.setSkipTaskbar(false);
+  });
+};
+
 const createWindow = () => {
   mainWin = new BrowserWindow({
     show: false,
-    alwaysOnTop: true,
+    skipTaskbar: true,
     hasShadow: false,
     width: 450,
     height: 550,
@@ -34,19 +44,14 @@ const createWindow = () => {
   }
 
   mainWin.loadURL(path.join(RENDERER_DIST, 'index.html#main'))
-
-  mainWin.once('ready-to-show', () => {
-    if (mainWin) {
-      mainWin.show();
-    }
-  });
+  onceReady(mainWin);
 };
 
 const createTranslateWindow = () => {
   translateWin = new BrowserWindow({
-    alwaysOnTop: true,
+    show: false,
+    skipTaskbar: true,
     hasShadow: false,
-    opacity: 1,
     minHeight: 100,
     minWidth: 300,
     webPreferences: {
@@ -59,8 +64,8 @@ const createTranslateWindow = () => {
     titleBarStyle: 'hidden',
   });
 
-  // translateWin.loadFile(path.join(RENDERER_DIST, 'index.html')) // вернуть вместо loadURL когда придумаю решение лучше
   translateWin.loadURL(path.join(RENDERER_DIST, 'index.html#translator'));
+  onceReady(translateWin);
 };
 
 ipcMain.handle('take-screenshot', async () => {

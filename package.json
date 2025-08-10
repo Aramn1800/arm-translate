@@ -23,10 +23,16 @@
       }
     ],
     "win": {
-      "icon": "src/public/translate.ico"
+      "icon": "src/public/translate.ico",
+      "requestedExecutionLevel": "requireAdministrator"
     },
     "mac": {
       "icon": "src/public/translate.icns"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "runAfterFinish": false
     }
   },
   "dependencies": {
