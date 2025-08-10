@@ -1,10 +1,10 @@
 import { makeAutoObservable } from 'mobx';
 import { tesseractLanguageCodeMap, type SourceLanguageCodeType, type TargetLanguageCodeType } from './Language';
 import Tesseract from 'tesseract.js';
-import axios from 'axios';
 
-const deeplKey = import.meta.env.VITE_DEEPL_API_KEY;
-const isTestMode = import.meta.env.VITE_TEST_MODE === '1';
+type AppConfig = {
+  DEEPL_API_KEY: string,
+};
 
 export class AppModel {
   targetLang: { code: TargetLanguageCodeType, label: string } | null = { code: 'ru', label: 'Russian' };
@@ -18,6 +18,8 @@ export class AppModel {
   autoCapture: boolean = false;
 
   hotkey: string = '';
+
+  config: AppConfig = { DEEPL_API_KEY: '' };
 
   constructor() {
     makeAutoObservable(this);
@@ -34,9 +36,6 @@ export class AppModel {
   capture = async (image: Buffer<ArrayBufferLike>) => {
     if (!this.sourceLang) return '';
     const search = await Tesseract.recognize(image, tesseractLanguageCodeMap[this.sourceLang.code]);
-    if (isTestMode) {
-      console.log('AppModel > captureText', search);
-    }
     return this.fixCaptureText(search.data.text);
   };
 
@@ -44,31 +43,34 @@ export class AppModel {
     try {
       const body = {
         text,
-        target_lang: this.targetLang?.code,
-        source_lang: this.sourceLang?.code,
+        target_lang: this.targetLang?.code || '',
+        source_lang: this.sourceLang?.code || '',
+        model_type: 'prefer_quality_optimized',
+        formality: 'prefer_less',
       };
-      const res = await axios.post<{ translations: { text: string }[] }>(
-        'https://api-free.deepl.com/v2/translate', 
-        body, 
-        {
-          headers: {
-            'Authorization': `DeepL-Auth-Key ${deeplKey}`,
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-        }
-      );
-      if (isTestMode) {
-        console.log('AppModel > translateText', res);
-      }
-      return res.data.translations[0].text;
+      const res = await fetch('https://api-free.deepl.com/v2/translate', {
+        method: 'POST',
+        headers: {
+          'Authorization': `DeepL-Auth-Key ${this.config.DEEPL_API_KEY}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams(body).toString(),
+      });
+      const data: { translations: { text: string }[] } = await res.json();
+      return data.translations[0].text;
     } catch(e) {
       console.error(e);
     }
-  }
+  };
+
+  initConfig = async () => {
+    const config = await window.ipcRenderer.invoke('get-config');
+    this.config = config;
+  };
 
   fixCaptureText = (text: string) => {
-    return text.replace('|', 'I');
-  }
+    return text.replaceAll('|', 'I');
+  };
 }
 
 const appModel = new AppModel();

@@ -156,6 +156,18 @@ ipcMain.handle('globalShortcut-register', (_, shortcut: string) => {
   }
 });
 
+ipcMain.handle('get-config', () => {
+  let configPath = '';
+
+  if (app.isPackaged) {
+    configPath = path.join(process.resourcesPath, "config.json");
+  } else {
+    configPath =  path.join(__dirname, "config.json");
+  }
+
+  return JSON.parse(fs.readFileSync(configPath, "utf8"));
+});
+
 ipcMain.on('window-close', () => {
   const win = BrowserWindow.getFocusedWindow();
   if (win) win.close();

@@ -8,7 +8,11 @@ import WindowFrame from "./WindowFrame";
 import Tools from "./Tools";
 
 const MainWindow: React.FC = observer(() => {
-  const { targetLang, sourceLang, textTranslate, textSize } = appModel;
+  const { targetLang, sourceLang, textTranslate, textSize, initConfig } = appModel;
+
+  React.useEffect(() => {
+    initConfig();
+  }, []);
 
   return (
     <WindowFrame title="Main">
