@@ -80,13 +80,15 @@ const createTranslateWindow = () => {
 }
 
 ipcMain.handle('take-screenshot', async () => {
-  if (!translateWin) return null
+  if (!translateWin) {
+    return null
+  }
   try {
     const area = translateWin.getBounds()
-    area.y = area.y + 32
-    area.height = area.height - 38
-    area.x = area.x + 4
-    area.width = area.width - 8
+    area.y += 32
+    area.height -= 38
+    area.x += 4
+    area.width -= 8
     const display = screen.getDisplayNearestPoint({ x: area.x, y: area.y })
     const sources = await desktopCapturer.getSources({
       types: ['screen'],
@@ -97,7 +99,9 @@ ipcMain.handle('take-screenshot', async () => {
     })
     const source = sources.find((s) => s.display_id === String(display.id))
 
-    if (!source) throw new Error('Cant find source')
+    if (!source) {
+      throw new Error('Cant find source')
+    }
 
     const screenshotImage: NativeImage = source.thumbnail
     const fullScreenshotBuffer = screenshotImage.toPNG()
@@ -133,11 +137,15 @@ ipcMain.handle('take-screenshot', async () => {
           whitePixels++
         }
 
-        if (blackPixels > whitePixels) needInvert = true
-      },
+        if (blackPixels > whitePixels) {
+          needInvert = true
+        }
+      }
     )
 
-    if (needInvert) croppedImage.invert()
+    if (needInvert) {
+      croppedImage.invert()
+    }
 
     const croppedImageBuffer = await croppedImage.getBuffer('image/png')
 
@@ -173,10 +181,10 @@ ipcMain.handle('globalShortcut-register', (_, shortcut: string) => {
     }
   })
 
-  if (!ret) {
-    console.error('Registration failed')
-  } else {
+  if (ret) {
     captureShortcut = shortcut
+  } else {
+    console.error('Registration failed')
   }
 })
 
@@ -194,12 +202,16 @@ ipcMain.handle('get-config', () => {
 
 ipcMain.on('window-close', () => {
   const win = BrowserWindow.getFocusedWindow()
-  if (win) win.close()
+  if (win) {
+    win.close()
+  }
 })
 
 ipcMain.on('window-minimize', () => {
   const win = BrowserWindow.getFocusedWindow()
-  if (win) win.minimize()
+  if (win) {
+    win.minimize()
+  }
 })
 
 app.on('window-all-closed', () => {

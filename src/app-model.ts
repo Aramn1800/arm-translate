@@ -1,10 +1,10 @@
 import { makeAutoObservable } from 'mobx'
+import Tesseract from 'tesseract.js'
 import {
-  tesseractLanguageCodeMap,
   type SourceLanguageCodeType,
   type TargetLanguageCodeType,
+  tesseractLanguageCodeMap,
 } from './Language'
-import Tesseract from 'tesseract.js'
 
 type AppConfig = {
   DEEPL_API_KEY: string
@@ -23,11 +23,11 @@ export class AppModel {
 
   textTranslate: string | undefined = undefined
 
-  textSize: number = 2
+  textSize = 2
 
-  autoCapture: boolean = false
+  autoCapture = false
 
-  hotkey: string = ''
+  hotkey = ''
 
   config: AppConfig = { DEEPL_API_KEY: '' }
 
@@ -36,7 +36,9 @@ export class AppModel {
   }
 
   captureAndTranslate = async () => {
-    if (!this.sourceLang || !this.targetLang || this.autoCapture) return
+    if (!(this.sourceLang && this.targetLang) || this.autoCapture) {
+      return
+    }
     const image = await window.ipcRenderer.invoke('take-screenshot')
     const captureText = await this.capture(image)
     const translateText = await this.translate(captureText)
@@ -44,7 +46,9 @@ export class AppModel {
   }
 
   capture = async (image: Buffer<ArrayBufferLike>) => {
-    if (!this.sourceLang) return ''
+    if (!this.sourceLang) {
+      return ''
+    }
     const search = await Tesseract.recognize(image, tesseractLanguageCodeMap[this.sourceLang.code])
     return this.fixCaptureText(search.data.text)
   }

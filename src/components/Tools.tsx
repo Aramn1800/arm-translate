@@ -1,15 +1,15 @@
-import React from 'react'
+import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import { observer } from 'mobx-react-lite'
-import appModel from '../AppModel'
-import Button from '@mui/material/Button'
-import ToolsOptions from './ToolsOptions'
+import React from 'react'
+import appModel from '../app-model'
+import ToolsOptions from './tools-options'
 
 const Tools: React.FC = observer(() => {
   const [open, setOpen] = React.useState(false)
   const { targetLang, sourceLang, captureAndTranslate, autoCapture } = appModel
 
-  const isMissingValue = !sourceLang || !targetLang
+  const isMissingValue = !(sourceLang && targetLang)
 
   React.useEffect(() => {
     window.ipcRenderer.on('global-shortcut-pressed', () => {
@@ -18,22 +18,22 @@ const Tools: React.FC = observer(() => {
   }, [])
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="flex flex-row w-full gap-6 items-center">
+    <div className="flex w-full flex-col">
+      <div className="flex w-full flex-row items-center gap-6">
         <Button
-          variant="text"
+          className="text-blue-100 hover:text-blue-300"
           onClick={() => setOpen(!open)}
           size="small"
-          className="text-blue-100 hover:text-blue-300"
+          variant="text"
         >
           {`${open ? '▼' : '►'} Options`}
         </Button>
         <Button
           className="bg-blue-100 text-gray-800 hover:bg-blue-300 disabled:bg-gray-700"
-          variant="contained"
-          size="small"
-          onClick={captureAndTranslate}
           disabled={isMissingValue || autoCapture}
+          onClick={captureAndTranslate}
+          size="small"
+          variant="contained"
         >
           Capture
         </Button>

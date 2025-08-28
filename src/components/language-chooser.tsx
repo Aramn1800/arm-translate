@@ -12,13 +12,13 @@ type Props<V extends string> = {
 
 const LanguageChooser = <V extends string>(props: Props<V>) => {
   return (
-    <div className="flex flex-row w-full justify-between items-center">
+    <div className="flex w-full flex-row items-center justify-between">
       <Typography variant="subtitle1">{props.label}</Typography>
       <Autocomplete
-        fullWidth
-        size="small"
         className="max-w-[80%]"
+        fullWidth
         renderInput={(params) => <TextField {...params} />}
+        size="small"
         sx={{
           '& .MuiOutlinedInput-root': {
             border: '1px solid #dbeafe',

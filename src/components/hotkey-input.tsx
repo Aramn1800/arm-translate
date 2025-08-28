@@ -1,11 +1,11 @@
-import React from 'react'
-import { observer } from 'mobx-react-lite'
-import appModel from '../AppModel'
-import TextField from '@mui/material/TextField'
+import CloseIcon from '@mui/icons-material/Close'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
-import CloseIcon from '@mui/icons-material/Close'
 import InputAdornment from '@mui/material/InputAdornment'
+import TextField from '@mui/material/TextField'
+import { observer } from 'mobx-react-lite'
+import React from 'react'
+import appModel from '../app-model'
 
 const HotkeyInput: React.FC = observer(() => {
   const [recording, setRecording] = React.useState(false)
@@ -54,9 +54,15 @@ const HotkeyInput: React.FC = observer(() => {
         const order = ['COMMANDORCONTROL', 'CONTROL', 'SHIFT', 'ALT', 'SPACE']
         const aIndex = order.indexOf(a)
         const bIndex = order.indexOf(b)
-        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
-        if (aIndex !== -1) return -1
-        if (bIndex !== -1) return 1
+        if (aIndex !== -1 && bIndex !== -1) {
+          return aIndex - bIndex
+        }
+        if (aIndex !== -1) {
+          return -1
+        }
+        if (bIndex !== -1) {
+          return 1
+        }
         return a.localeCompare(b)
       })
       .join('+')
@@ -75,7 +81,9 @@ const HotkeyInput: React.FC = observer(() => {
   }
 
   React.useEffect(() => {
-    if (!recording) return
+    if (!recording) {
+      return
+    }
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('keyup', handleKeyUp)
     return () => {
@@ -85,26 +93,14 @@ const HotkeyInput: React.FC = observer(() => {
   }, [recording])
 
   return (
-    <div className="flex flex-row gap-2 w-full items-center">
+    <div className="flex w-full flex-row items-center gap-2">
       <TextField
-        value={appModel.hotkey}
-        size="small"
-        label="Capture hotkey"
-        fullWidth
         error={error}
-        helperText={error ? 'The hotkey must contain at least 2 values.' : undefined}
         focused
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            position: 'relative',
-            border: '1px solid',
-            borderColor: error ? '#fb2c36' : '#dbeafe',
-            color: '#dbeafe',
-          },
-          '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-            border: 'none',
-          },
-        }}
+        fullWidth
+        helperText={error ? 'The hotkey must contain at least 2 values.' : undefined}
+        label="Capture hotkey"
+        size="small"
         slotProps={{
           input: {
             readOnly: true,
@@ -112,12 +108,12 @@ const HotkeyInput: React.FC = observer(() => {
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
-                  size="small"
                   className="group"
-                  onClick={handleRemoveHotkey}
                   disabled={appModel.hotkey === ''}
+                  onClick={handleRemoveHotkey}
+                  size="small"
                 >
-                  <CloseIcon className="w-5 h-5 text-blue-100 group-disabled:text-gray-700" />
+                  <CloseIcon className="h-5 w-5 text-blue-100 group-disabled:text-gray-700" />
                 </IconButton>
               </InputAdornment>
             ),
@@ -129,12 +125,24 @@ const HotkeyInput: React.FC = observer(() => {
             className: 'text-red-500 absolute bottom-[-22px] left-0 w-full m-0',
           },
         }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            position: 'relative',
+            border: '1px solid',
+            borderColor: error ? '#fb2c36' : '#dbeafe',
+            color: '#dbeafe',
+          },
+          '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+            border: 'none',
+          },
+        }}
+        value={appModel.hotkey}
       />
       <Button
+        className={`${recording ? 'bg-blue-300' : 'bg-blue-100'} min-w-[120px] text-gray-800 hover:bg-blue-300`}
         onClick={toggleRecord}
-        variant="contained"
         size="small"
-        className={`${recording ? 'bg-blue-300' : 'bg-blue-100'} text-gray-800 hover:bg-blue-300 min-w-[120px]`}
+        variant="contained"
       >
         Set hotkey
       </Button>

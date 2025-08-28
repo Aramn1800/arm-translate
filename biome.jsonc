@@ -1,5 +1,6 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+  "extends": ["ultracite"],
   "files": {
     "includes": ["**", "!**/dist/", "!**/node_modules/", "!**/coverage/"]
   },
@@ -16,7 +17,19 @@
       "correctness": {
         "useExhaustiveDependencies": "warn"
       },
-      "nursery": {}
+      "suspicious": {
+        "noConsole": "warn"
+      },
+      "style": {
+        "noMagicNumbers": "warn",
+        "noNonNullAssertion": "warn",
+        "noNamespace": "warn"
+      },
+      "nursery": {
+        "noUnnecessaryConditions": "warn",
+        "noShadow": "warn",
+        "useConsistentTypeDefinitions": "warn"
+      }
     }
   },
   "javascript": {

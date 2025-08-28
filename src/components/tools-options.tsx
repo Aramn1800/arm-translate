@@ -1,11 +1,11 @@
-import React from 'react'
-import { observer } from 'mobx-react-lite'
-import appModel from '../AppModel'
-import TextField from '@mui/material/TextField'
 import Checkbox from '@mui/material/Checkbox'
-import FormControlLabel from '@mui/material/FormControlLabel'
 import Collapse from '@mui/material/Collapse'
-import HotkeyInput from './HotkeyInput'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import TextField from '@mui/material/TextField'
+import { observer } from 'mobx-react-lite'
+import React from 'react'
+import appModel from '../app-model'
+import HotkeyInput from './hotkey-input'
 
 type Props = {
   open: boolean
@@ -14,8 +14,8 @@ type Props = {
 const ToolsOptions: React.FC<Props> = observer(({ open }) => {
   const { capture, translate, autoCapture, textSize } = appModel
 
-  let bufferText: string = ''
-  let timeoutId: NodeJS.Timeout | undefined = undefined
+  let bufferText = ''
+  let timeoutId: NodeJS.Timeout | undefined
 
   const handleAutoCapture = async () => {
     const image = await window.ipcRenderer.invoke('take-screenshot')
@@ -58,10 +58,14 @@ const ToolsOptions: React.FC<Props> = observer(({ open }) => {
       }}
     >
       <TextField
-        value={textSize}
-        type="number"
-        size="small"
         label="Text size (rem)"
+        onChange={(event) => {
+          appModel.textSize = Number(event.target.value)
+        }}
+        size="small"
+        slotProps={{
+          inputLabel: { className: 'text-blue-100 text-lg bg-gray-800' },
+        }}
         sx={{
           '& .MuiOutlinedInput-root': {
             border: '1px solid #dbeafe',
@@ -71,23 +75,23 @@ const ToolsOptions: React.FC<Props> = observer(({ open }) => {
             border: 'none',
           },
         }}
-        slotProps={{
-          inputLabel: { className: 'text-blue-100 text-lg bg-gray-800' },
-        }}
-        onChange={(event) => (appModel.textSize = Number(event.target.value))}
+        type="number"
+        value={textSize}
       />
       <HotkeyInput />
       <FormControlLabel
-        label="Auto capture (unstable)"
         className="group text-blue-100 hover:text-blue-300"
         control={
           <Checkbox
-            value={autoCapture}
-            onChange={(_, checked) => (appModel.autoCapture = checked)}
-            size="small"
             className="text-blue-100 group-hover:text-blue-300"
+            onChange={(_, checked) => {
+              appModel.autoCapture = checked
+            }}
+            size="small"
+            value={autoCapture}
           />
         }
+        label="Auto capture (unstable)"
       />
     </Collapse>
   )
