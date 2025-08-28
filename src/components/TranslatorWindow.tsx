@@ -1,10 +1,8 @@
-import React from "react";
-import WindowFrame from "./WindowFrame";
+import type React from 'react'
+import WindowFrame from './WindowFrame'
 
 const TranslatorWindow: React.FC = () => {
-  return (
-    <WindowFrame title="Capture" children={null} />
-  );
+  return <WindowFrame title="Capture">{null}</WindowFrame>;
 };
 
-export default TranslatorWindow;
+export default TranslatorWindow

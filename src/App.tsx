@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react'
 import MainWindow from './components/MainWindow'
 import TranslatorWindow from './components/TranslatorWindow'
 
@@ -9,11 +9,11 @@ const App: React.FC = () => {
         return <TranslatorWindow />
       case '#main':
       default:
-        return <MainWindow />;
+        return <MainWindow />
     }
-  };
+  }
 
-  return getContent();
+  return getContent()
 }
 
 export default App

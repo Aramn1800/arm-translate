@@ -1,14 +1,51 @@
-export const commonLanguageCode = ['ar', 'bg', 'cs', 'da', 'de', 'el', 'es', 'et', 'fi', 'fr', 'hu', 'id', 'it', 'ja', 'ko', 'lt', 'lv', 'nb', 'nl', 'pl', 'ro', 'ru', 'sk', 'sl', 'sv', 'tr', 'uk', 'zh'] as const;
+export const commonLanguageCode = [
+  'ar',
+  'bg',
+  'cs',
+  'da',
+  'de',
+  'el',
+  'es',
+  'et',
+  'fi',
+  'fr',
+  'hu',
+  'id',
+  'it',
+  'ja',
+  'ko',
+  'lt',
+  'lv',
+  'nb',
+  'nl',
+  'pl',
+  'ro',
+  'ru',
+  'sk',
+  'sl',
+  'sv',
+  'tr',
+  'uk',
+  'zh',
+] as const
 
-export type CommonLanguageCodeType = typeof commonLanguageCode[number];
+export type CommonLanguageCodeType = (typeof commonLanguageCode)[number]
 
-export const sourceLanguageCode = [...commonLanguageCode, 'en', 'pt'] as const;
+export const sourceLanguageCode = [...commonLanguageCode, 'en', 'pt'] as const
 
-export type SourceLanguageCodeType = typeof sourceLanguageCode[number];
+export type SourceLanguageCodeType = (typeof sourceLanguageCode)[number]
 
-export const targetLanguageCode = [...commonLanguageCode, 'en-GB', 'en-US', 'pt-BR', 'pt-PT', 'zh-HANS', 'zh-HANT'] as const;
+export const targetLanguageCode = [
+  ...commonLanguageCode,
+  'en-GB',
+  'en-US',
+  'pt-BR',
+  'pt-PT',
+  'zh-HANS',
+  'zh-HANT',
+] as const
 
-export type TargetLanguageCodeType = typeof targetLanguageCode[number];
+export type TargetLanguageCodeType = (typeof targetLanguageCode)[number]
 
 export const languageNames: Record<string, string> = {
   ar: 'Arabic',
@@ -47,7 +84,7 @@ export const languageNames: Record<string, string> = {
   zh: 'Chinese',
   'zh-HANS': 'Chinese (Simplified)',
   'zh-HANT': 'Chinese (Traditional)',
-}; 
+}
 
 export const tesseractLanguageCodeMap = {
   ar: 'ara',
@@ -79,9 +116,15 @@ export const tesseractLanguageCodeMap = {
   uk: 'ukr',
   zh: 'chi_sim',
   en: 'eng',
-  pt: 'por'
-};
+  pt: 'por',
+}
 
-export const sourceLanguageOptions = sourceLanguageCode.map((o) => ({ code: o, label: languageNames[o] }));
+export const sourceLanguageOptions = sourceLanguageCode.map((o) => ({
+  code: o,
+  label: languageNames[o],
+}))
 
-export const targetLanguageOptions = targetLanguageCode.map((o) => ({ code: o, label: languageNames[o] }));
+export const targetLanguageOptions = targetLanguageCode.map((o) => ({
+  code: o,
+  label: languageNames[o],
+}))
