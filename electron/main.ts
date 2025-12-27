@@ -1,7 +1,7 @@
-import fs from 'node:fs'
-import os from 'node:os'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   app,
   BrowserWindow,
@@ -10,28 +10,28 @@ import {
   ipcMain,
   type NativeImage,
   screen,
-} from 'electron'
-import { Jimp } from 'jimp'
+} from "electron";
+import { Jimp } from "jimp";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const RENDERER_DIST = path.join(__dirname, '..', 'dist')
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const RENDERER_DIST = path.join(__dirname, "..", "dist");
 
-let mainWin: BrowserWindow | null
-let translateWin: BrowserWindow | null
-let captureShortcut: string | undefined
+let mainWin: BrowserWindow | null;
+let translateWin: BrowserWindow | null;
+let captureShortcut: string | undefined;
 
 const onceReady = (window: BrowserWindow) => {
-  window.once('ready-to-show', () => {
-    window.show()
+  window.once("ready-to-show", () => {
+    window.show();
 
-    window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
-    window.setAlwaysOnTop(true, 'dock')
-    window.setFullScreenable(false)
+    window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    window.setAlwaysOnTop(true, "dock");
+    window.setFullScreenable(false);
 
-    window.setSkipTaskbar(false)
-    window.moveTop()
-  })
-}
+    window.setSkipTaskbar(false);
+    window.moveTop();
+  });
+};
 
 const createWindow = () => {
   mainWin = new BrowserWindow({
@@ -42,21 +42,21 @@ const createWindow = () => {
     height: 550,
     minWidth: 450,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,
       nodeIntegration: false,
     },
     autoHideMenuBar: true,
-    titleBarStyle: 'hidden',
-  })
+    titleBarStyle: "hidden",
+  });
 
   if (!app.isPackaged) {
-    mainWin.webContents.openDevTools({ mode: 'undocked' })
+    mainWin.webContents.openDevTools({ mode: "undocked" });
   }
 
-  mainWin.loadURL(path.join(RENDERER_DIST, 'index.html#main'))
-  onceReady(mainWin)
-}
+  mainWin.loadURL(path.join(RENDERER_DIST, "index.html#main"));
+  onceReady(mainWin);
+};
 
 const createTranslateWindow = () => {
   translateWin = new BrowserWindow({
@@ -66,53 +66,53 @@ const createTranslateWindow = () => {
     minHeight: 100,
     minWidth: 300,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,
       nodeIntegration: false,
     },
     transparent: true,
     autoHideMenuBar: true,
-    titleBarStyle: 'hidden',
-  })
+    titleBarStyle: "hidden",
+  });
 
-  translateWin.loadURL(path.join(RENDERER_DIST, 'index.html#translator'))
-  onceReady(translateWin)
-}
+  translateWin.loadURL(path.join(RENDERER_DIST, "index.html#translator"));
+  onceReady(translateWin);
+};
 
-ipcMain.handle('take-screenshot', async () => {
+ipcMain.handle("take-screenshot", async () => {
   if (!translateWin) {
-    return null
+    return null;
   }
   try {
-    const area = translateWin.getBounds()
-    area.y += 32
-    area.height -= 38
-    area.x += 4
-    area.width -= 8
-    const display = screen.getDisplayNearestPoint({ x: area.x, y: area.y })
+    const area = translateWin.getBounds();
+    area.y += 32;
+    area.height -= 38;
+    area.x += 4;
+    area.width -= 8;
+    const display = screen.getDisplayNearestPoint({ x: area.x, y: area.y });
     const sources = await desktopCapturer.getSources({
-      types: ['screen'],
+      types: ["screen"],
       thumbnailSize: {
         width: display.bounds.width,
         height: display.bounds.height,
       },
-    })
-    const source = sources.find((s) => s.display_id === String(display.id))
+    });
+    const source = sources.find((s) => s.display_id === String(display.id));
 
     if (!source) {
-      throw new Error('Cant find source')
+      throw new Error("Cant find source");
     }
 
-    const screenshotImage: NativeImage = source.thumbnail
-    const fullScreenshotBuffer = screenshotImage.toPNG()
+    const screenshotImage: NativeImage = source.thumbnail;
+    const fullScreenshotBuffer = screenshotImage.toPNG();
 
     const sharpenKernel = [
       [-1, -1, -1],
       [-1, 9, -1],
       [-1, -1, -1],
-    ]
+    ];
 
-    const jimp = await Jimp.read(fullScreenshotBuffer)
+    const jimp = await Jimp.read(fullScreenshotBuffer);
     const croppedImage = jimp
       .crop({ x: area.x, y: area.y, w: area.width, h: area.height })
       .scale(2)
@@ -120,11 +120,11 @@ ipcMain.handle('take-screenshot', async () => {
       .brightness(0.8)
       .blur(1)
       .convolution(sharpenKernel)
-      .threshold({ max: 200, autoGreyscale: false })
+      .threshold({ max: 200, autoGreyscale: false });
 
-    let needInvert = false
-    let blackPixels = 0
-    let whitePixels = 0
+    let needInvert = false;
+    let blackPixels = 0;
+    let whitePixels = 0;
     croppedImage.scan(
       0,
       0,
@@ -132,98 +132,98 @@ ipcMain.handle('take-screenshot', async () => {
       croppedImage.bitmap.height,
       (_x, _y, idx) => {
         if (croppedImage.bitmap.data[idx + 0] < 128) {
-          blackPixels++
+          blackPixels++;
         } else {
-          whitePixels++
+          whitePixels++;
         }
 
         if (blackPixels > whitePixels) {
-          needInvert = true
+          needInvert = true;
         }
       }
-    )
+    );
 
     if (needInvert) {
-      croppedImage.invert()
+      croppedImage.invert();
     }
 
-    const croppedImageBuffer = await croppedImage.getBuffer('image/png')
+    const croppedImageBuffer = await croppedImage.getBuffer("image/png");
 
     if (!app.isPackaged) {
-      const dir = path.join(os.homedir(), 'Documents', 'tempScreen')
-      const screenshotPath = path.join(dir, `screenshot-${Date.now()}.png`)
-      fs.writeFileSync(screenshotPath, croppedImageBuffer)
-      console.log('Save path:', screenshotPath)
+      const dir = path.join(os.homedir(), "Documents", "tempScreen");
+      const screenshotPath = path.join(dir, `screenshot-${Date.now()}.png`);
+      fs.writeFileSync(screenshotPath, croppedImageBuffer);
+      console.log("Save path:", screenshotPath);
     }
 
-    return croppedImageBuffer
+    return croppedImageBuffer;
   } catch (e) {
-    console.error('Screen capture failed:', e)
-    return null
+    console.error("Screen capture failed:", e);
+    return null;
   }
-})
+});
 
-ipcMain.handle('globalShortcut-unregister', () => {
+ipcMain.handle("globalShortcut-unregister", () => {
   if (captureShortcut) {
-    globalShortcut.unregister(captureShortcut)
-    captureShortcut = undefined
+    globalShortcut.unregister(captureShortcut);
+    captureShortcut = undefined;
   }
-})
+});
 
-ipcMain.handle('globalShortcut-register', (_, shortcut: string) => {
+ipcMain.handle("globalShortcut-register", (_, shortcut: string) => {
   if (captureShortcut) {
-    globalShortcut.unregister(captureShortcut)
+    globalShortcut.unregister(captureShortcut);
   }
 
   const ret = globalShortcut.register(shortcut, () => {
     if (mainWin) {
-      mainWin.webContents.send('global-shortcut-pressed', shortcut)
+      mainWin.webContents.send("global-shortcut-pressed", shortcut);
     }
-  })
+  });
 
   if (ret) {
-    captureShortcut = shortcut
+    captureShortcut = shortcut;
   } else {
-    console.error('Registration failed')
+    console.error("Registration failed");
   }
-})
+});
 
-ipcMain.handle('get-config', () => {
-  let configPath = ''
+ipcMain.handle("get-config", () => {
+  let configPath = "";
 
   if (app.isPackaged) {
-    configPath = path.join(process.resourcesPath, 'config.json')
+    configPath = path.join(process.resourcesPath, "config.json");
   } else {
-    configPath = path.join(__dirname, 'config.json')
+    configPath = path.join(__dirname, "config.json");
   }
 
-  return JSON.parse(fs.readFileSync(configPath, 'utf8'))
-})
+  return JSON.parse(fs.readFileSync(configPath, "utf8"));
+});
 
-ipcMain.on('window-close', () => {
-  const win = BrowserWindow.getFocusedWindow()
+ipcMain.on("window-close", () => {
+  const win = BrowserWindow.getFocusedWindow();
   if (win) {
-    win.close()
+    win.close();
   }
-})
+});
 
-ipcMain.on('window-minimize', () => {
-  const win = BrowserWindow.getFocusedWindow()
+ipcMain.on("window-minimize", () => {
+  const win = BrowserWindow.getFocusedWindow();
   if (win) {
-    win.minimize()
+    win.minimize();
   }
-})
+});
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-    mainWin = null
-    translateWin = null
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+    mainWin = null;
+    translateWin = null;
     if (captureShortcut) {
-      globalShortcut.unregister(captureShortcut)
-      captureShortcut = undefined
+      globalShortcut.unregister(captureShortcut);
+      captureShortcut = undefined;
     }
   }
-})
+});
 
-app.whenReady().then(createWindow).then(createTranslateWindow)
+app.whenReady().then(createWindow).then(createTranslateWindow);

@@ -1,13 +1,16 @@
-import Autocomplete from '@mui/material/Autocomplete'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import type React from 'react'
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import type React from "react";
 
-type Props<V extends string> = {
-  label: string
-  value: { code: V; label: string } | null
-  options: Readonly<{ code: V; label: string }[]>
-  onChange: (e: React.SyntheticEvent, value: { code: V; label: string } | null) => void
+interface Props<V extends string> {
+  label: string;
+  value: { code: V; label: string } | null;
+  options: Readonly<{ code: V; label: string }[]>;
+  onChange: (
+    e: React.SyntheticEvent,
+    value: { code: V; label: string } | null
+  ) => void;
 }
 
 const LanguageChooser = <V extends string>(props: Props<V>) => {
@@ -20,21 +23,21 @@ const LanguageChooser = <V extends string>(props: Props<V>) => {
         renderInput={(params) => <TextField {...params} />}
         size="small"
         sx={{
-          '& .MuiOutlinedInput-root': {
-            border: '1px solid #dbeafe',
-            color: '#dbeafe',
+          "& .MuiOutlinedInput-root": {
+            border: "1px solid #dbeafe",
+            color: "#dbeafe",
           },
-          '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-            border: 'none',
+          "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
+            border: "none",
           },
-          '& .MuiIconButton-root': {
-            color: '#dbeafe',
+          "& .MuiIconButton-root": {
+            color: "#dbeafe",
           },
         }}
         {...props}
       />
     </div>
-  )
-}
+  );
+};
 
-export default LanguageChooser
+export default LanguageChooser;

@@ -1,3 +1,6 @@
 {
-  "DEEPL_API_KEY": "Check link: https://support.deepl.com/hc/articles/360020695820"
+  "DEEPL_API_KEY": "Check link: https://support.deepl.com/hc/articles/360020695820",
+  "SOURCE_LANG": "en",
+  "TARGET_LANG": "ru",
+  "HOTKEY": ""
 }

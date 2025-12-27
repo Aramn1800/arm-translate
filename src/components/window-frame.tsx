@@ -1,19 +1,19 @@
-import CloseIcon from '@mui/icons-material/Close'
-import MinimizeIcon from '@mui/icons-material/Minimize'
-import TranslateIcon from '@mui/icons-material/Translate'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import { observer } from 'mobx-react-lite'
-import type React from 'react'
+import CloseIcon from "@mui/icons-material/Close";
+import MinimizeIcon from "@mui/icons-material/Minimize";
+import TranslateIcon from "@mui/icons-material/Translate";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import { observer } from "mobx-react-lite";
+import type React from "react";
 
-type Props = {
-  title: string
-  children: React.ReactNode
+interface Props {
+  title: string;
+  children: React.ReactNode;
 }
 
 const WindowFrame: React.FC<Props> = observer(({ children, title }) => {
-  const handleClose = () => window.ipcRenderer.send('window-close')
-  const handleMinimize = () => window.ipcRenderer.send('window-minimize')
+  const handleClose = () => window.ipcRenderer.send("window-close");
+  const handleMinimize = () => window.ipcRenderer.send("window-minimize");
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -35,7 +35,7 @@ const WindowFrame: React.FC<Props> = observer(({ children, title }) => {
         {children}
       </div>
     </div>
-  )
-})
+  );
+});
 
-export default WindowFrame
+export default WindowFrame;

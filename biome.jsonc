@@ -1,42 +1,7 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
-  "extends": ["ultracite"],
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["ultracite/core"],
   "files": {
-    "includes": ["**", "!**/dist/", "!**/node_modules/", "!**/coverage/"]
-  },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "space",
-    "indentWidth": 2,
-    "lineWidth": 100
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "correctness": {
-        "useExhaustiveDependencies": "warn"
-      },
-      "suspicious": {
-        "noConsole": "warn"
-      },
-      "style": {
-        "noMagicNumbers": "warn",
-        "noNonNullAssertion": "warn",
-        "noNamespace": "warn"
-      },
-      "nursery": {
-        "noUnnecessaryConditions": "warn",
-        "noShadow": "warn",
-        "useConsistentTypeDefinitions": "warn"
-      }
-    }
-  },
-  "javascript": {
-    "formatter": {
-      "semicolons": "asNeeded",
-      "quoteStyle": "single"
-    }
-  },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } }
+    "includes": ["!**/dist/", "!**/node_modules/", "!**/coverage/"]
+  }
 }

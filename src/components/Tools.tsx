@@ -1,21 +1,23 @@
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import { observer } from 'mobx-react-lite'
-import React from 'react'
-import appModel from '../app-model'
-import ToolsOptions from './tools-options'
+import { CircularProgress } from "@mui/material";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import { observer } from "mobx-react-lite";
+import React from "react";
+import appModel from "../app-model";
+import ToolsOptions from "./tools-options";
 
 const Tools: React.FC = observer(() => {
-  const [open, setOpen] = React.useState(false)
-  const { targetLang, sourceLang, captureAndTranslate, autoCapture } = appModel
+  const [open, setOpen] = React.useState(false);
+  const { targetLang, sourceLang, captureAndTranslate, autoCapture, loading } =
+    appModel;
 
-  const isMissingValue = !(sourceLang && targetLang)
+  const isMissingValue = !(sourceLang && targetLang);
 
   React.useEffect(() => {
-    window.ipcRenderer.on('global-shortcut-pressed', () => {
-      captureAndTranslate()
-    })
-  }, [])
+    window.ipcRenderer.on("global-shortcut-pressed", () => {
+      captureAndTranslate();
+    });
+  }, [captureAndTranslate]);
 
   return (
     <div className="flex w-full flex-col">
@@ -26,7 +28,7 @@ const Tools: React.FC = observer(() => {
           size="small"
           variant="text"
         >
-          {`${open ? '▼' : '►'} Options`}
+          {`${open ? "▼" : "►"} Options`}
         </Button>
         <Button
           className="bg-blue-100 text-gray-800 hover:bg-blue-300 disabled:bg-gray-700"
@@ -38,12 +40,17 @@ const Tools: React.FC = observer(() => {
           Capture
         </Button>
         {isMissingValue ? (
-          <Typography className="text-red-500">Select target/source lang</Typography>
+          <Typography className="text-red-500">
+            Select target/source lang
+          </Typography>
+        ) : null}
+        {loading ? (
+          <CircularProgress className="text-blue-100" size={20} />
         ) : null}
       </div>
       <ToolsOptions open={open} />
     </div>
-  )
-})
+  );
+});
 
-export default Tools
+export default Tools;
