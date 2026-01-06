@@ -38,9 +38,9 @@ const createWindow = () => {
     show: false,
     skipTaskbar: true,
     hasShadow: false,
-    width: 450,
+    width: 550,
     height: 550,
-    minWidth: 450,
+    minWidth: 550,
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,

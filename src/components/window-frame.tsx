@@ -1,17 +1,15 @@
-import CloseIcon from "@mui/icons-material/Close";
-import MinimizeIcon from "@mui/icons-material/Minimize";
-import TranslateIcon from "@mui/icons-material/Translate";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import { observer } from "mobx-react-lite";
 import type React from "react";
+import IconButton from "./basic/icon-button";
+import CloseIcon from "./icons/close-icon";
+import MinimizeIcon from "./icons/minimize-icon";
+import TranslateIcon from "./icons/translate-icon";
 
-interface Props {
+interface IWindowFrame {
   title: string;
   children: React.ReactNode;
 }
 
-const WindowFrame: React.FC<Props> = observer(({ children, title }) => {
+const WindowFrame = ({ children, title }: IWindowFrame) => {
   const handleClose = () => window.ipcRenderer.send("window-close");
   const handleMinimize = () => window.ipcRenderer.send("window-minimize");
 
@@ -20,14 +18,14 @@ const WindowFrame: React.FC<Props> = observer(({ children, title }) => {
       <div className="app-region-drag flex h-8 w-full flex-row items-center justify-between bg-gray-800 p-2">
         <div className="flex flex-row items-center gap-1">
           <TranslateIcon className="h-5 w-5 text-blue-100" />
-          <Typography className="select-none text-blue-100">{`Arm-translate ${title}`}</Typography>
+          <p className="select-none text-blue-100">{`Arm-translate ${title}`}</p>
         </div>
-        <div className="app-region-no-drag flex flex-row items-center gap-4">
-          <IconButton className="p-0" onClick={handleMinimize}>
-            <MinimizeIcon className="h-5 w-5 text-blue-100" />
+        <div className="app-region-no-drag flex flex-row items-center gap-1">
+          <IconButton onClick={handleMinimize}>
+            <MinimizeIcon />
           </IconButton>
-          <IconButton className="p-0" onClick={handleClose}>
-            <CloseIcon className="h-5 w-5 text-blue-100" />
+          <IconButton onClick={handleClose}>
+            <CloseIcon />
           </IconButton>
         </div>
       </div>
@@ -36,6 +34,6 @@ const WindowFrame: React.FC<Props> = observer(({ children, title }) => {
       </div>
     </div>
   );
-});
+};
 
 export default WindowFrame;

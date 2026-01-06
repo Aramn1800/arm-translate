@@ -2,9 +2,7 @@ import { makeAutoObservable } from "mobx";
 import Tesseract from "tesseract.js";
 import {
   type SourceLanguageCodeType,
-  sourceLanguageOptions,
   type TargetLanguageCodeType,
-  targetLanguageOptions,
   tesseractLanguageCodeMap,
 } from "./language";
 
@@ -20,11 +18,13 @@ export class AppModel {
 
   autoCapture = false;
 
-  targetLang: { code: TargetLanguageCodeType; label: string } | null = null;
+  targetLang: TargetLanguageCodeType | undefined = undefined;
 
-  sourceLang: { code: SourceLanguageCodeType; label: string } | null = null;
+  sourceLang: SourceLanguageCodeType | undefined = undefined;
 
-  textTranslate: string | undefined = undefined;
+  textInput: string | undefined = undefined;
+
+  textOutput: string | undefined = undefined;
 
   textSize = 2;
 
@@ -40,24 +40,34 @@ export class AppModel {
     if (!(this.sourceLang && this.targetLang) || this.autoCapture) {
       return;
     }
+
     this.loading = true;
 
-    const image = await window.ipcRenderer.invoke("take-screenshot");
-    const captureText = await this.capture(image);
-    const translateText = await this.translate(captureText);
-    this.textTranslate = translateText;
+    try {
+      const image = await window.ipcRenderer.invoke("take-screenshot");
 
-    this.loading = false;
+      const captureText = await this.capture(image);
+      this.textInput = captureText;
+
+      const translateText = await this.translate(captureText);
+      this.textOutput = translateText;
+    } catch (e) {
+      console.error(e);
+    } finally {
+      this.loading = false;
+    }
   };
 
   capture = async (image: Buffer<ArrayBufferLike>) => {
     if (!this.sourceLang) {
       return "";
     }
+
     const search = await Tesseract.recognize(
       image,
-      tesseractLanguageCodeMap[this.sourceLang.code]
+      tesseractLanguageCodeMap[this.sourceLang]
     );
+
     return this.fixCaptureText(search.data.text);
   };
 
@@ -65,10 +75,11 @@ export class AppModel {
     try {
       const body = {
         text,
-        target_lang: this.targetLang?.code || "",
-        source_lang: this.sourceLang?.code || "",
+        target_lang: this.targetLang || "",
+        source_lang: this.sourceLang || "",
         model_type: "prefer_quality_optimized",
       };
+
       const res = await fetch("https://api-free.deepl.com/v2/translate", {
         method: "POST",
         headers: {
@@ -77,7 +88,9 @@ export class AppModel {
         },
         body: new URLSearchParams(body).toString(),
       });
+
       const data: { translations: { text: string }[] } = await res.json();
+
       return data.translations[0].text;
     } catch (e) {
       console.error(e);
@@ -94,11 +107,8 @@ export class AppModel {
       await window.ipcRenderer.invoke("globalShortcut-register", this.hotkey);
     }
 
-    this.sourceLang =
-      sourceLanguageOptions.find((o) => o.code === config.SOURCE_LANG) ?? null;
-
-    this.targetLang =
-      targetLanguageOptions.find((o) => o.code === config.TARGET_LANG) ?? null;
+    this.sourceLang = config.SOURCE_LANG ?? null;
+    this.targetLang = config.TARGET_LANG ?? null;
   };
 
   fixCaptureText = (text: string) => {
