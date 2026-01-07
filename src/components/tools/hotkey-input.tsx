@@ -6,7 +6,7 @@ import IconButton from "../basic/icon-button";
 import Input from "../basic/input";
 import CloseIcon from "../icons/close-icon";
 
-const HotkeyInput: React.FC = observer(() => {
+const HotkeyInput = observer(() => {
   const [recording, setRecording] = React.useState(false);
   const [error, setError] = React.useState(false);
   let modifiers: string[] = [];
@@ -18,7 +18,7 @@ const HotkeyInput: React.FC = observer(() => {
 
   const handleRemoveHotkey = async () => {
     setError(false);
-    await window.ipcRenderer.invoke("globalShortcut-unregister");
+    await appModel.updateConfig({ HOTKEY: null });
     appModel.hotkey = "";
   };
 
@@ -70,10 +70,7 @@ const HotkeyInput: React.FC = observer(() => {
 
   const handleKeyUp = async () => {
     if (modifiers.length >= 2) {
-      await window.ipcRenderer.invoke(
-        "globalShortcut-register",
-        appModel.hotkey
-      );
+      await appModel.updateConfig({ HOTKEY: appModel.hotkey });
     } else {
       setError(true);
     }

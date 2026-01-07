@@ -1,8 +1,7 @@
-import type React from "react";
 import MainWindow from "./components/main-window";
 import TranslatorWindow from "./components/translator-window";
 
-const App: React.FC = () => {
+const App = () => {
   const getContent = () => {
     switch (window.location.hash) {
       case "#translator":

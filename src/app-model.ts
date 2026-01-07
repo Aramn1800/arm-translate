@@ -6,14 +6,18 @@ import {
   tesseractLanguageCodeMap,
 } from "./language";
 
-interface AppConfig {
+interface IAppConfig {
   DEEPL_API_KEY: string;
-  SOURCE_LANG: SourceLanguageCodeType;
-  TARGET_LANG: TargetLanguageCodeType;
-  HOTKEY: string;
+  SOURCE_LANG: SourceLanguageCodeType | null;
+  TARGET_LANG: TargetLanguageCodeType | null;
+  HOTKEY: string | null;
+  TEXT_SIZE: number | null;
+  CAPTURE_AREA: { x: number; y: number; width: number; height: number } | null;
 }
 
 export class AppModel {
+  configLoading = false;
+
   loading = false;
 
   autoCapture = false;
@@ -98,21 +102,42 @@ export class AppModel {
   };
 
   initConfig = async () => {
-    const config = (await window.ipcRenderer.invoke("get-config")) as AppConfig;
+    this.configLoading = true;
 
-    this.apiKey = config.DEEPL_API_KEY;
+    try {
+      const config = (await window.ipcRenderer.invoke(
+        "get-config"
+      )) as IAppConfig;
 
-    if (config.HOTKEY) {
-      this.hotkey = config.HOTKEY;
-      await window.ipcRenderer.invoke("globalShortcut-register", this.hotkey);
+      this.apiKey = config.DEEPL_API_KEY;
+
+      if (config.HOTKEY) {
+        this.hotkey = config.HOTKEY;
+      }
+
+      if (config.TEXT_SIZE) {
+        this.textSize = config.TEXT_SIZE;
+      }
+
+      this.sourceLang = config.SOURCE_LANG ?? undefined;
+      this.targetLang = config.TARGET_LANG ?? undefined;
+    } catch (e) {
+      console.log(e);
+    } finally {
+      this.configLoading = false;
     }
-
-    this.sourceLang = config.SOURCE_LANG ?? null;
-    this.targetLang = config.TARGET_LANG ?? null;
   };
 
   fixCaptureText = (text: string) => {
     return text.replaceAll("|", "I");
+  };
+
+  updateConfig = async (patch: Partial<IAppConfig>) => {
+    await window.ipcRenderer.invoke("update-config", patch);
+  };
+
+  openCaptureWindow = async () => {
+    await window.ipcRenderer.invoke("open-capture-window");
   };
 }
 

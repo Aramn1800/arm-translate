@@ -3,7 +3,7 @@ import React from "react";
 import appModel from "../../app-model";
 import Checkbox from "../basic/checkbox";
 
-const AutoCapture: React.FC = observer(() => {
+const AutoCapture = observer(() => {
   const { capture, translate, autoCapture } = appModel;
 
   let bufferText = "";

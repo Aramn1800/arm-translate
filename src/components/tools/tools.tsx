@@ -2,13 +2,21 @@ import { observer } from "mobx-react-lite";
 import React from "react";
 import appModel from "../../app-model";
 import Button from "../basic/button";
+import IconButton from "../basic/icon-button";
 import Spinner from "../basic/spinner";
+import CaptureIcon from "../icons/capture-icon";
 import ToolsOptions from "./tools-options";
 
 const Tools = observer(() => {
   const [open, setOpen] = React.useState(false);
-  const { targetLang, sourceLang, captureAndTranslate, autoCapture, loading } =
-    appModel;
+  const {
+    targetLang,
+    sourceLang,
+    captureAndTranslate,
+    autoCapture,
+    loading,
+    openCaptureWindow,
+  } = appModel;
 
   const isMissingValue = !(sourceLang && targetLang);
 
@@ -31,6 +39,9 @@ const Tools = observer(() => {
           label="Capture"
           onClick={captureAndTranslate}
         />
+        <IconButton onClick={openCaptureWindow}>
+          <CaptureIcon />
+        </IconButton>
         {isMissingValue ? (
           <p className="text-red-500 text-sm">Select target/source lang</p>
         ) : null}

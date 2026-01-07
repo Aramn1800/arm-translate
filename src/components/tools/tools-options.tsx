@@ -14,7 +14,9 @@ const ToolsOptions = observer(({ open }: IToolsOptions) => {
   const { textSize } = appModel;
 
   const handleTextSize = (event: React.ChangeEvent<HTMLInputElement>) => {
-    appModel.textSize = Number(event.target.value);
+    const newValue = Number(event.target.value);
+    appModel.textSize = newValue;
+    appModel.updateConfig({ TEXT_SIZE: newValue });
   };
 
   return (

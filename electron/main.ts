@@ -8,17 +8,67 @@ import {
   desktopCapturer,
   globalShortcut,
   ipcMain,
-  type NativeImage,
   screen,
 } from "electron";
 import { Jimp } from "jimp";
+
+interface AppConfig {
+  DEEPL_API_KEY: string;
+  SOURCE_LANG: string | null;
+  TARGET_LANG: string | null;
+  HOTKEY: string | null;
+  TEXT_SIZE: number | null;
+  CAPTURE_AREA: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null;
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RENDERER_DIST = path.join(__dirname, "..", "dist");
 
 let mainWin: BrowserWindow | null;
-let translateWin: BrowserWindow | null;
-let captureShortcut: string | undefined;
+let captureWin: BrowserWindow | null;
+let captureHotkey: string | null;
+let captureArea: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} | null = null;
+
+const getConfigPath = () => {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, "config.json");
+  }
+
+  return path.join(__dirname, "config.json");
+};
+
+const updateConfig = (patch: Partial<AppConfig>) => {
+  const configPath = getConfigPath();
+
+  try {
+    const raw = fs.readFileSync(configPath, "utf8");
+    const config = JSON.parse(raw) as AppConfig;
+    const nextConfig = { ...config, ...patch };
+    fs.writeFileSync(configPath, JSON.stringify(nextConfig, null, 2), "utf8");
+    return nextConfig;
+  } catch (e) {
+    console.error("Failed to update config:", e);
+    return null;
+  }
+};
+
+const handleRegisterShortcut = (hotkey: string) => {
+  globalShortcut.register(hotkey, () => {
+    if (mainWin) {
+      mainWin.webContents.send("global-shortcut-pressed", hotkey);
+    }
+  });
+};
 
 const onceReady = (window: BrowserWindow) => {
   window.once("ready-to-show", () => {
@@ -58,13 +108,17 @@ const createWindow = () => {
   onceReady(mainWin);
 };
 
-const createTranslateWindow = () => {
-  translateWin = new BrowserWindow({
+const createCaptureWindow = () => {
+  captureWin = new BrowserWindow({
     show: false,
     skipTaskbar: true,
     hasShadow: false,
     minHeight: 100,
     minWidth: 300,
+    x: captureArea?.x,
+    y: captureArea?.y,
+    width: captureArea?.width,
+    height: captureArea?.height,
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,
@@ -75,21 +129,36 @@ const createTranslateWindow = () => {
     titleBarStyle: "hidden",
   });
 
-  translateWin.loadURL(path.join(RENDERER_DIST, "index.html#translator"));
-  onceReady(translateWin);
+  captureWin.loadURL(path.join(RENDERER_DIST, "index.html#translator"));
+  onceReady(captureWin);
+
+  captureWin.on("close", () => {
+    const bounds = captureWin?.getBounds();
+    if (!bounds) {
+      return;
+    }
+
+    captureArea = {
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
+    };
+
+    updateConfig({ CAPTURE_AREA: captureArea } as Partial<AppConfig>);
+  });
 };
 
 ipcMain.handle("take-screenshot", async () => {
-  if (!translateWin) {
+  if (!captureArea) {
     return null;
   }
   try {
-    const area = translateWin.getBounds();
-    area.y += 32;
-    area.height -= 38;
-    area.x += 4;
-    area.width -= 8;
-    const display = screen.getDisplayNearestPoint({ x: area.x, y: area.y });
+    const display = screen.getDisplayNearestPoint({
+      x: captureArea.x,
+      y: captureArea.y,
+    });
+
     const sources = await desktopCapturer.getSources({
       types: ["screen"],
       thumbnailSize: {
@@ -97,13 +166,14 @@ ipcMain.handle("take-screenshot", async () => {
         height: display.bounds.height,
       },
     });
+
     const source = sources.find((s) => s.display_id === String(display.id));
 
     if (!source) {
       throw new Error("Cant find source");
     }
 
-    const screenshotImage: NativeImage = source.thumbnail;
+    const screenshotImage = source.thumbnail;
     const fullScreenshotBuffer = screenshotImage.toPNG();
 
     const sharpenKernel = [
@@ -114,7 +184,12 @@ ipcMain.handle("take-screenshot", async () => {
 
     const jimp = await Jimp.read(fullScreenshotBuffer);
     const croppedImage = jimp
-      .crop({ x: area.x, y: area.y, w: area.width, h: area.height })
+      .crop({
+        x: captureArea.x + 4,
+        y: captureArea.y + 32,
+        w: captureArea.width - 8,
+        h: captureArea.height - 38,
+      })
       .scale(2)
       .greyscale()
       .brightness(0.8)
@@ -163,41 +238,51 @@ ipcMain.handle("take-screenshot", async () => {
   }
 });
 
-ipcMain.handle("globalShortcut-unregister", () => {
-  if (captureShortcut) {
-    globalShortcut.unregister(captureShortcut);
-    captureShortcut = undefined;
-  }
-});
-
-ipcMain.handle("globalShortcut-register", (_, shortcut: string) => {
-  if (captureShortcut) {
-    globalShortcut.unregister(captureShortcut);
-  }
-
-  const ret = globalShortcut.register(shortcut, () => {
-    if (mainWin) {
-      mainWin.webContents.send("global-shortcut-pressed", shortcut);
-    }
-  });
-
-  if (ret) {
-    captureShortcut = shortcut;
-  } else {
-    console.error("Registration failed");
-  }
+ipcMain.handle("open-capture-window", () => {
+  createCaptureWindow();
 });
 
 ipcMain.handle("get-config", () => {
-  let configPath = "";
+  const configPath = getConfigPath();
+  const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as AppConfig;
 
-  if (app.isPackaged) {
-    configPath = path.join(process.resourcesPath, "config.json");
-  } else {
-    configPath = path.join(__dirname, "config.json");
+  if (config.HOTKEY) {
+    handleRegisterShortcut(config.HOTKEY);
   }
 
-  return JSON.parse(fs.readFileSync(configPath, "utf8"));
+  if (config.CAPTURE_AREA) {
+    captureArea = config.CAPTURE_AREA;
+  }
+
+  return config;
+});
+
+ipcMain.handle("update-config", (_event, patch: Partial<AppConfig>) => {
+  const nextConfig = updateConfig(patch);
+
+  if (!nextConfig) {
+    return null;
+  }
+
+  if ("CAPTURE_AREA" in patch) {
+    captureArea = nextConfig.CAPTURE_AREA;
+  }
+
+  if ("HOTKEY" in patch) {
+    if (captureHotkey) {
+      console.log("unregister", captureHotkey);
+      globalShortcut.unregister(captureHotkey);
+    }
+
+    const shortcut = nextConfig.HOTKEY;
+    captureHotkey = shortcut;
+
+    if (shortcut) {
+      handleRegisterShortcut(shortcut);
+    }
+  }
+
+  return nextConfig;
 });
 
 ipcMain.on("window-close", () => {
@@ -218,12 +303,13 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
     mainWin = null;
-    translateWin = null;
-    if (captureShortcut) {
-      globalShortcut.unregister(captureShortcut);
-      captureShortcut = undefined;
+    captureWin = null;
+    captureArea = null;
+    if (captureHotkey) {
+      globalShortcut.unregister(captureHotkey);
+      captureHotkey = null;
     }
   }
 });
 
-app.whenReady().then(createWindow).then(createTranslateWindow);
+app.whenReady().then(createWindow);
