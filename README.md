@@ -19,7 +19,7 @@ A small program designed to translate text from a specific area of the computer 
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/Aramn1800/arm-translate.git
 cd arm-translate
 ```
 
